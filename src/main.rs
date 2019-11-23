@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::vec::Vec;
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Config {
     names: Vec<String>,
@@ -30,13 +30,14 @@ fn main() {
             let idx = select_random_edge_idx(&linked_edge_idxs);
             // Assign the selected person to the current person
             assignments.insert(config.names[i].clone(), config.names[idx].clone());
-            // Remove all incoming links to the selected person
+            // Remove all remaining incoming links to the selected person
             // so they may not be selected again
             for j in i..graph.len() {
                 graph[j][idx] = Edge::Unlinked;
             }
         } else {
-            // The last person can only select themself
+            // There are no linked edges for this node,
+            // meaning the last person can only select themself
             // Find someone to swap while keeping all assignments valid
             let swap_key = find_valid_swap(&assignments, &config, i);
             let swap_value = get_map_val(&assignments, &swap_key);
@@ -97,7 +98,7 @@ fn find_valid_swap(pairs: &HashMap<String, String>, config: &Config, i: usize) -
     let partner = get_map_val(&config.partner_map, &config.names[i]);
     match &partner[..] {
         // This person has no partner
-        // Pick a someone else at random to swap with
+        // Pick someone else at random to swap with
         "" => {
             let n = rand::thread_rng().gen_range(0, config.names.len() - 1);
             config.names[n].clone()
